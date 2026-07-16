@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE AI Agent: 지원사업 스캐너 대시보드</title>
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-logo">
+                <div class="logo-orb"></div>
+                <h1>Durume-SSE AI Agent</h1>
+            </div>
+            <p class="subtitle">사회연대경제 자율 행정 보조 에이전트 시스템</p>
+        </header>
+
+        <!-- Status Cards Grid -->
+        <section class="status-grid">
+            <!-- Scheduler Status -->
+            <div class="status-card glass-panel">
+                <div class="card-header">
+                    <h3>자동 스케줄러</h3>
+                    <div id="scheduler-badge" class="badge badge-active">활성화됨</div>
+                </div>
+                <div class="card-content">
+                    <p class="state-text">매일 아침 08:00 정밀 스캔 예약 상태</p>
+                </div>
+            </div>
+
+            <!-- Scanner Process Status -->
+            <div class="status-card glass-panel">
+                <div class="card-header">
+                    <h3>스캐너 프로세스</h3>
+                    <div id="process-badge" class="badge badge-idle">대기중 (Idle)</div>
+                </div>
+                <div class="card-content">
+                    <p class="state-text">현재 대기 상태이며 호출을 준비 중입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Controls -->
+        <section class="controls-section glass-panel">
+            <h2>에이전트 제어 콘솔 (Agent Control)</h2>
+            <div class="btn-group">
+                <button id="btn-launch" class="btn btn-glowing-cyan">
+                    <span class="btn-icon">⚡</span> 즉시 실행 (Launch)
+                </button>
+                <button id="btn-pause" class="btn btn-glass">
+                    <span id="pause-icon" class="btn-icon">⏸️</span> <span id="pause-text">일시정지 (Pause)</span>
+                </button>
+                <button id="btn-stop" class="btn btn-crimson" disabled>
+                    <span class="btn-icon">🛑</span> 강제 중단 (Stop)
+                </button>
+            </div>
+        </section>
+
+        <!-- Layout splits: Logs and Results -->
+        <div class="layout-split">
+            <!-- Left: Scraped & Evaluated Results -->
+            <section class="results-panel glass-panel">
+                <h2>실시간 매칭 결과 (Scanned Grants)</h2>
+                <div class="results-list" id="results-container">
+                    <div class="loading">결과 로드 중...</div>
+                </div>
+            </section>
+
+            <!-- Right: Real-time Terminal Log -->
+            <section class="log-panel glass-panel">
+                <div class="panel-header">
+                    <h2>실시간 에이전트 콘솔 로그 (Live Logs)</h2>
+                    <span class="pulse-indicator" id="log-pulse"></span>
+                </div>
+                <div class="console-box" id="console-logs">
+                    <div class="log-line system">[System] 콘솔 초기화 완료. 실시간 스트리밍 대기 중...</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
