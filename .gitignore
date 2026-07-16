@@ -39,6 +39,9 @@ ENV/
 *.key
 credentials.json
 client_secret.json
+token.json
+*scraped_grants*.json
+fetched_results_utf8.json
 
 # System & OS Files
 .DS_Store

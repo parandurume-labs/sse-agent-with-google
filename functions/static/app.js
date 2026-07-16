@@ -14,6 +14,16 @@ const elConsoleLogs = document.getElementById('console-logs');
 const elResultsContainer = document.getElementById('results-container');
 const elLogPulse = document.getElementById('log-pulse');
 
+// Module C Elements
+const elBtnGenerateReport = document.getElementById('btn-generate-report');
+const elEventName = document.getElementById('event-name');
+const elPhotoFilename = document.getElementById('photo-filename');
+const elRawNotes = document.getElementById('raw-notes');
+const elDraftStatus = document.getElementById('draft-status');
+const elPreviewBox = document.getElementById('preview-box');
+const elDraftMeta = document.getElementById('draft-meta');
+const elDraftPath = document.getElementById('draft-path');
+
 // API Base URLs
 const API_BASE = '/api';
 
@@ -184,10 +194,201 @@ async function handleStop() {
     }
 }
 
+// -------------------------------------------------------------
+// Module B: RAG Wiki Chatbot logic
+// -------------------------------------------------------------
+const elChatHistory = document.getElementById('chat-history');
+const elChatInput = document.getElementById('chat-input');
+const elBtnChatSend = document.getElementById('btn-chat-send');
+
+function appendChatMessage(sender, text, role = 'assistant') {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${role}`;
+    
+    const senderDiv = document.createElement('div');
+    senderDiv.className = 'message-sender';
+    senderDiv.textContent = sender;
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'message-text';
+    
+    // Simple markdown formatting (bold, code, lists, and linebreaks)
+    let formattedText = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+    textDiv.innerHTML = formattedText;
+    
+    msgDiv.appendChild(senderDiv);
+    msgDiv.appendChild(textDiv);
+    elChatHistory.appendChild(msgDiv);
+    elChatHistory.scrollTop = elChatHistory.scrollHeight;
+}
+
+let elTypingIndicator = null;
+function showTypingIndicator() {
+    elTypingIndicator = document.createElement('div');
+    elTypingIndicator.className = 'chat-message assistant typing';
+    elTypingIndicator.innerHTML = `
+        <div class="message-sender">🤖 Wiki Bot</div>
+        <div class="message-text"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
+    `;
+    elChatHistory.appendChild(elTypingIndicator);
+    elChatHistory.scrollTop = elChatHistory.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    if (elTypingIndicator) {
+        elTypingIndicator.remove();
+        elTypingIndicator = null;
+    }
+}
+
+async function handleChatSend() {
+    const question = elChatInput.value.trim();
+    if (!question) return;
+
+    elChatInput.value = '';
+    appendChatMessage('👤 나', question, 'user');
+    showTypingIndicator();
+    
+    elChatInput.disabled = true;
+    elBtnChatSend.disabled = true;
+
+    try {
+        const res = await fetch(`${API_BASE}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question })
+        });
+        
+        removeTypingIndicator();
+
+        if (!res.ok) throw new Error("서버 응답 에러");
+        const data = await res.json();
+        appendChatMessage('🤖 Wiki Bot', data.answer, 'assistant');
+    } catch (err) {
+        removeTypingIndicator();
+        appendChatMessage('🤖 Wiki Bot', `오류가 발생했습니다: ${err.message}`, 'assistant');
+    } finally {
+        elChatInput.disabled = false;
+        elBtnChatSend.disabled = false;
+        elChatInput.focus();
+    }
+}
+
+elBtnChatSend.addEventListener('click', handleChatSend);
+elChatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        handleChatSend();
+    }
+});
+
+// Trigger Module C: Event Report Draft Generation
+async function handleGenerateReport() {
+    const eventName = elEventName.value.trim();
+    const rawNotes = elRawNotes.value.trim();
+    const photoFilename = elPhotoFilename.value;
+
+    if (!eventName || !rawNotes) {
+        alert("행사명과 현장 메모를 입력해 주세요!");
+        return;
+    }
+
+    appendConsoleLog(`[Console] Module C 기사 초안 생성 기동... 행사명: ${eventName}`, "system");
+    
+    // Update UI State to Generating
+    elBtnGenerateReport.disabled = true;
+    elBtnGenerateReport.innerHTML = '<span class="btn-icon">⏳</span> 생성 중 (Generating...)';
+    elDraftStatus.textContent = "생성 중";
+    elDraftStatus.className = "draft-status-badge generating";
+    elPreviewBox.innerHTML = '<div class="loading">Gemini 1.5 Pro가 현장 분석 및 기사 초안을 작성 중입니다...<br>이 작업은 약 5~15초 소요될 수 있습니다.</div>';
+    elDraftMeta.style.display = 'none';
+
+    try {
+        const payload = {
+            event_name: eventName,
+            raw_notes: rawNotes,
+            photo_filename: photoFilename || null
+        };
+
+        const res = await fetch(`/api/report`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.detail || "서버 오류 발생");
+        }
+
+        const data = await res.json();
+        
+        // Parse simple markdown for preview box
+        elPreviewBox.innerHTML = parseSimpleMarkdown(data.content);
+        
+        // Update draft meta
+        elDraftPath.textContent = data.file_path;
+        elDraftMeta.style.display = 'flex';
+        
+        // Update badges
+        elDraftStatus.textContent = "작성 완료";
+        elDraftStatus.className = "draft-status-badge success";
+        appendConsoleLog(`[Server] 기사 초안 작성 완료! 저장 위치: ${data.file_name}`, "system");
+
+    } catch (err) {
+        appendConsoleLog(`[Error] 기사 생성 실패: ${err.message}`, "error");
+        elPreviewBox.innerHTML = `<div class="log-line error" style="text-align: center; padding: 2rem 0;">기사 초안 생성에 실패했습니다.<br>사유: ${err.message}</div>`;
+        elDraftStatus.textContent = "실패";
+        elDraftStatus.className = "draft-status-badge";
+    } finally {
+        elBtnGenerateReport.disabled = false;
+        elBtnGenerateReport.innerHTML = '<span class="btn-icon">📝</span> 기사 초안 생성 (Generate Draft)';
+    }
+}
+
+// Lightweight parser to render beautiful MD in the Glassmorphism card
+function parseSimpleMarkdown(markdown) {
+    if (!markdown) return '';
+    let html = markdown;
+    
+    // Escape HTML first to prevent injection
+    html = html
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    
+    // Replace headers
+    html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+    
+    // Replace blockquotes (which got escaped to &gt;)
+    html = html.replace(/^&gt;\s+(.+)$/gm, '<blockquote>$1</blockquote>');
+    
+    // Replace bold text
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    
+    // Replace italic text
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    
+    // Replace horizontal rules
+    html = html.replace(/^---$/gm, '<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">');
+    
+    // Replace carriage returns with line breaks (excluding headers/quotes/lists)
+    html = html.replace(/\n/g, '<br>');
+    
+    return html;
+}
+
 // Listeners
 elBtnLaunch.addEventListener('click', handleLaunch);
 elBtnPause.addEventListener('click', handlePause);
 elBtnStop.addEventListener('click', handleStop);
+elBtnGenerateReport.addEventListener('click', handleGenerateReport);
 
 // Event loops (Auto updates)
 updateStatus();

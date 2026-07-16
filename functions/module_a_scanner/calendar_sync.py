@@ -19,7 +19,10 @@ CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH", "credentials.json")
 CALENDAR_ID = os.getenv("CALENDAR_ID", "primary")
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+SCOPES = [
+    'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/drive.readonly'
+]
 
 class CalendarSync:
     def __init__(self):

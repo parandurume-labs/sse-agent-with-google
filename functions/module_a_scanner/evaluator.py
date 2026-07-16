@@ -46,10 +46,11 @@ class GrantEvaluator:
         if not self.model:
             # Fallback mock evaluation if no API key
             logger.info(f"Simulating evaluation for: {grant_data['title']}")
-            score = 9 if "사회적" in grant_data['title'] or "소셜" in grant_data['title'] else 3
+            has_matching_keyword = any(kw in grant_data['title'] for kw in ["사회적", "소셜", "인공지능", "스마트", "박람회", "제조물", "R&D", "천연물"])
+            score = 9 if has_matching_keyword else 3
             return {
                 "score": score,
-                "reason": "시뮬레이션된 평가 결과입니다. (API 키 미등록)"
+                "reason": "시뮬레이션 매칭 결과입니다. (테스트용 키워드 매칭 활성화: 인공지능/스마트/박람회/제조물 등)"
             }
 
         prompt = f"""

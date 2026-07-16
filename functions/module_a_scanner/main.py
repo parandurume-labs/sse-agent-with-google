@@ -30,13 +30,15 @@ def run_module_a(request=None):
     cal_sync = CalendarSync()
 
     # 2. Fetch new grants (e.g., from Bizinfo)
-    grants = scraper.fetch_grants(max_items=3)
+    grants = scraper.fetch_grants(max_items=5)
     if not grants:
         logger.info("No new grants found today.")
-        return "OK"
+        return {"status": "No new grants found today.", "results": []}
 
     # 3. Evaluate each grant and process if S >= 8
     processed_count = 0
+    evaluated_list = []
+    
     for grant in grants:
         logger.info(f"Evaluating: {grant['title']}")
         evaluation = evaluator.evaluate(grant)
@@ -46,18 +48,33 @@ def run_module_a(request=None):
         
         logger.info(f"Score: {score} | Reason: {reason}")
         
+        status_str = "제외됨"
         if score >= 8:
             logger.info(f"HIGH SUITABILITY (S={score})! Adding to Calendar...")
             success = cal_sync.add_grant_deadline(grant, evaluation)
             if success:
                 processed_count += 1
-                # Note: In a full architecture, we'd also log this to Google Sheets (T_Grant_Master) here.
-        else:
-            logger.info(f"Skipping calendar registration (Score {score} < 8)")
+                status_str = "등록 완료"
+            else:
+                status_str = "등록 실패"
+                
+        evaluated_list.append({
+            "id": grant["grant_id"],
+            "title": grant["title"],
+            "score": score,
+            "due_date": grant["due_date"],
+            "status": status_str,
+            "url": grant["link"],
+            "reason": reason
+        })
 
     logger.info(f"=== Module A Completed. Added {processed_count} grants to calendar. ===")
-    return f"Processed {len(grants)} grants. Added {processed_count} to calendar."
+    return {
+        "status": f"Processed {len(grants)} grants. Added {processed_count} to calendar.",
+        "results": evaluated_list
+    }
 
 if __name__ == "__main__":
     # Local execution for testing
     run_module_a()
+

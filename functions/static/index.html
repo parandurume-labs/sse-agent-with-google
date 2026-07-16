@@ -64,6 +64,47 @@
             </div>
         </section>
 
+        <!-- Module C: Multimodal Event Reporter Section -->
+        <section class="reporter-section glass-panel">
+            <h2>현장 멀티모달 보도자료/활동 기사 초안 생성기 (Module C Event Reporter)</h2>
+            <div class="reporter-grid">
+                <div class="reporter-form">
+                    <div class="form-group">
+                        <label for="event-name">행사명 (Event Name)</label>
+                        <input type="text" id="event-name" placeholder="예: 성동구 사회적기업 장터" value="성동구 사회적기업 장터">
+                    </div>
+                    <div class="form-group">
+                        <label for="photo-filename">현장 사진 파일명 (Photo Filename)</label>
+                        <select id="photo-filename">
+                            <option value="">(사진 없음 - 텍스트 단독 분석)</option>
+                            <option value="EVT_20260716_01.jpg" selected>EVT_20260716_01.jpg (기본 샘플 사진)</option>
+                        </select>
+                        <span class="input-tip">SSE_Agent_Workspace/04_AppSheet_Media/ 폴더 내 파일명</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="raw-notes">현장 메모 / 키워드 (Raw Notes)</label>
+                        <textarea id="raw-notes" placeholder="현장에서 활동가가 남긴 생생한 메모나 키워드를 입력해 주세요...">성동구 협동조합 소통 공간에서 사회적기업 장터 개최. 15개 기업 참가, 친환경 수공예품 및 로컬 푸드 완판 성황. 주민 300여 명 참여하여 따뜻한 연대 체감. 특히 어린이 대상 업사이클링 체험 워크숍 큰 호응.</textarea>
+                    </div>
+                    <button id="btn-generate-report" class="btn btn-glowing-cyan">
+                        <span class="btn-icon">📝</span> 기사 초안 생성 (Generate Draft)
+                    </button>
+                </div>
+                <div class="reporter-preview">
+                    <div class="preview-header">
+                        <h3>생성된 마크다운 초안 프리뷰 (Markdown Draft Preview)</h3>
+                        <span id="draft-status" class="draft-status-badge">대기 중</span>
+                    </div>
+                    <div class="preview-box" id="preview-box">
+                        <p class="preview-placeholder">행사 정보를 입력하고 [기사 초안 생성]을 누르면, Gemini가 Agent_Reporter.md 톤앤매너 규칙에 따라 작성한 마크다운 초안이 여기에 렌더링됩니다.</p>
+                    </div>
+                    <div class="draft-meta" id="draft-meta" style="display: none;">
+                        <span class="meta-label">💾 저장 경로:</span>
+                        <code class="meta-path" id="draft-path">SSE_Agent_Workspace/05_Output_Drafts/[초안]_성동구사회적기업장터.md</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Layout splits: Logs and Results -->
         <div class="layout-split">
             <!-- Left: Scraped & Evaluated Results -->
@@ -85,6 +126,29 @@
                 </div>
             </section>
         </div>
+
+        <!-- Module B: RAG Wiki Chatbot -->
+        <section class="chat-section glass-panel">
+            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>📚 사내 지식 위키 챗봇 (RAG Wiki Bot)</h2>
+                <span class="badge badge-active" style="background: rgba(0, 242, 254, 0.15); color: var(--cyan-glow); border-color: rgba(0, 242, 254, 0.3);">Module B</span>
+            </div>
+            <p class="section-desc" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.2rem; margin-top: 0.4rem;">
+                Google Drive의 '02_Knowledge_Wiki' 마크다운 문서 내용을 기반으로 질문에 신뢰할 수 있는 정보를 답변합니다.
+            </p>
+            <div class="chat-container">
+                <div class="chat-history" id="chat-history">
+                    <div class="chat-message assistant">
+                        <div class="message-sender">🤖 Wiki Bot</div>
+                        <div class="message-text">안녕하세요! 무엇을 도와드릴까요? 사내 규정, 정기총회 의사록, 지원금 집행 매뉴얼 등 등록된 문서에 대해 질문해 보세요!</div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="예: 정기총회 서명 양식은 어디에 있지? 또는 지원금 집행 규정을 알려줘..." autocomplete="off">
+                    <button id="btn-chat-send" class="btn btn-glowing-cyan">전송</button>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="app.js"></script>

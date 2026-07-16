@@ -14,10 +14,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-# Add parent directory and module path to sys.path to resolve module_a_scanner imports
+# Add parent directory and module path to sys.path to resolve module_a_scanner and module_b_rag imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 sys.path.append(os.path.join(current_dir, "module_a_scanner"))
+sys.path.append(os.path.join(current_dir, "module_b_rag"))
 
 # Import scanner entrypoint
 try:
@@ -27,6 +28,23 @@ except ImportError:
     def run_module_a():
         time.sleep(5)
         return "Processed 3 grants. Added 2 to calendar."
+
+# Import Module C Event Reporter
+try:
+    from module_c_reporter import EventReporter
+except ImportError as e:
+    logging.warning(f"Failed to import EventReporter: {e}")
+
+# Import Module B RAG Engine
+try:
+    from module_b_rag.rag_engine import RAGEngine
+except ImportError as e:
+    logging.warning(f"Failed to import RAGEngine: {e}")
+    # Sim fallback in case import fails
+    class RAGEngine:
+        def query(self, q):
+            return "RAG Engine is currently unavailable."
+    EventReporter = None
 
 app = FastAPI(title="SSE Agent Dashboard")
 
@@ -107,16 +125,28 @@ def scanner_worker():
             result = run_module_a()
             logging.info(f"[Dashboard] Scan Finished successfully. Result: {result}")
             
-            # Appending a fresh run item to results for visual demonstration
-            state.results.insert(0, {
-                "id": str(len(state.results) + 1),
-                "title": "[전국] 하반기 소셜벤처 디지털 전환(DX) 패키지 지원",
-                "score": 8,
-                "due_date": "2026-07-21",
-                "status": "등록 완료",
-                "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do",
-                "reason": "소셜벤처 및 협동조합 대상 디지털 전환 기술/클라우드 바우처 지원 매칭 적합."
-            })
+            # Prepend actual real-time scraped and evaluated grants to the dashboard list
+            if isinstance(result, dict) and "results" in result:
+                real_results = result["results"]
+                # Insert in reverse order so the first item in the scrape list is prepended last (putting it at index 0)
+                for item in reversed(real_results):
+                    state.results.insert(0, item)
+                
+                # Limit the dashboard display list to last 50 items to keep it clean
+                if len(state.results) > 50:
+                    state.results = state.results[:50]
+            else:
+                # Fallback in case of raw string return from a mock import
+                state.results.insert(0, {
+                    "id": str(len(state.results) + 1),
+                    "title": "[전국] 하반기 소셜벤처 디지털 전환(DX) 패키지 지원",
+                    "score": 8,
+                    "due_date": "2026-07-21",
+                    "status": "등록 완료",
+                    "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do",
+                    "reason": "소셜벤처 및 협동조합 대상 디지털 전환 기술/클라우드 바우처 지원 매칭 적합."
+                })
+
     except Exception as e:
         logging.error(f"[Dashboard] Error in scanning process: {e}")
     finally:
@@ -164,6 +194,56 @@ def get_logs():
 @app.get("/api/results")
 def get_results():
     return {"results": state.results}
+
+class ReportRequest(BaseModel):
+    event_name: str
+    photo_filename: str = None
+    raw_notes: str
+
+@app.post("/api/report")
+@app.post("/webhook/report")
+def generate_event_report(request: ReportRequest):
+    logging.info(f"[Webhook/API] Received report request for event: {request.event_name}")
+    if not EventReporter:
+        raise HTTPException(status_code=500, detail="EventReporter is not loaded/configured.")
+    
+    try:
+        reporter = EventReporter()
+        result = reporter.generate_report(
+            event_name=request.event_name,
+            raw_notes=request.raw_notes,
+            photo_filename=request.photo_filename
+        )
+        if result.get("success"):
+            # Log the success so it streams on the live console log!
+            logging.info(f"[Module C] Event report draft created successfully! Saved as: {result.get('file_name')}")
+            return {
+                "success": True,
+                "file_name": result.get("file_name"),
+                "file_path": result.get("file_path"),
+                "content": result.get("content")
+            }
+        else:
+            logging.error(f"[Module C] Failed to save draft: {result.get('error')}")
+            raise HTTPException(status_code=500, detail=result.get("error", "Failed to generate report."))
+    except Exception as e:
+        logging.error(f"[Module C] Error generating event report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class ChatRequest(BaseModel):
+    question: str
+
+@app.post("/api/chat")
+def chat_endpoint(request: ChatRequest):
+    logging.info(f"[Dashboard API] Received RAG query: '{request.question}'")
+    try:
+        engine = RAGEngine()
+        answer = engine.query(request.question)
+        logging.info("[Module B] Completed RAG query.")
+        return {"answer": answer}
+    except Exception as e:
+        logging.error(f"[Module B] Error in chat_endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Mount static files (HTML, CSS, JS)
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
