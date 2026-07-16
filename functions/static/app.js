@@ -129,6 +129,11 @@ async function fetchResults() {
                     <div class="card-tags">
                         <span class="tag">적합도 스코어: ${grant.score}/10</span>
                         <span class="tag" style="color: ${isHigh ? 'var(--emerald)' : 'var(--crimson)'}">${grant.status}</span>
+                        ${grant.url ? `
+                            <a href="${grant.url}" target="_blank" class="tag" style="margin-left: auto; color: var(--cyan-glow); border: 1px solid rgba(0, 242, 254, 0.25); background: rgba(0, 242, 254, 0.05); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 0.2rem; transition: all 0.2s;">
+                                🔗 원문 보기
+                            </a>
+                        ` : ''}
                     </div>
                 </div>
             `;

@@ -71,6 +71,7 @@ state.results = [
         "score": 9,
         "due_date": "2026-07-23",
         "status": "등록 완료",
+        "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pbcMenuNo=74",
         "reason": "예비사회적기업에 최적화된 판로지원 및 최대 500만원 자금 매칭 제공."
     },
     {
@@ -79,6 +80,7 @@ state.results = [
         "score": 3,
         "due_date": "2026-07-30",
         "status": "제외됨",
+        "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pbcMenuNo=74",
         "reason": "대기업 협력 한정 및 높은 자부담(50%) 조건으로 당사 기준 불합치."
     }
 ]
@@ -112,6 +114,7 @@ def scanner_worker():
                 "score": 8,
                 "due_date": "2026-07-21",
                 "status": "등록 완료",
+                "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pbcMenuNo=74",
                 "reason": "소셜벤처 및 협동조합 대상 디지털 전환 기술/클라우드 바우처 지원 매칭 적합."
             })
     except Exception as e:
