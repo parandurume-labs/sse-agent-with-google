@@ -40,21 +40,21 @@ class GrantScraper:
                 {
                     "grant_id": "BIZ_2026_001",
                     "title": "[성동구] 2026년 사회적경제기업 판로지원 사업 참여기업 모집",
-                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=1234",
+                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/list.do",
                     "due_date": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
                     "content_summary": "성동구 관내 예비 및 인증 사회적기업을 대상으로 한 온라인/오프라인 장터 부스 지원 및 마케팅 자금(최대 500만원) 지원 공고."
                 },
                 {
                     "grant_id": "BIZ_2026_002",
                     "title": "2026년도 대기업 협력 R&D 지원사업 (제조업 한정)",
-                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=5678",
+                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/list.do",
                     "due_date": (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d"),
                     "content_summary": "매출 100억 이상 중견 제조기업과 대기업의 R&D 기술 교류 자금 지원. 자부담 50% 필수."
                 },
                 {
                     "grant_id": "BIZ_2026_003",
                     "title": "[전국] 하반기 소셜벤처 디지털 전환(DX) 패키지 지원",
-                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=9012",
+                    "link": f"{self.base_url}/web/lay1/bbs/S1T122C128/AS/74/list.do",
                     "due_date": (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d"),
                     "content_summary": "ICT 및 WebXR 등 디지털 전환 기술을 도입하려는 전국의 소셜벤처 및 협동조합 대상 클라우드 바우처 및 컨설팅 지원."
                 }
